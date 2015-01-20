@@ -14,7 +14,7 @@ from requests.exceptions import HTTPError, ConnectionError, Timeout
 ERROR_STATUS_MESSAGE = 'PostIt could not upload your file'
 ENDPOINT_URL = 'http://localhost:9157'
 STATUS_KEY = 'postit'
-REQUEST_TIMEOUT = 3
+REQUEST_TIMEOUT = 15
 
 class PostItCommand(sublime_plugin.WindowCommand):
 	"""
@@ -63,6 +63,11 @@ class PostItCommand(sublime_plugin.WindowCommand):
 			sublime.status_message(ERROR_STATUS_MESSAGE)
 			return
 
+		if 'url' not in result:
+			sublime.error_message("Response should contain the URL to the uploaded file")
+			return
+
+		sublime.message_dialog("File uploaded to %s" % result['url'])
 		sublime.status_message("Your file has been sent")
 
 
