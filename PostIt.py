@@ -31,8 +31,9 @@ class PostItCommand(sublime_plugin.WindowCommand):
 			return
 
 		contents = self.grab_view_contents(view)
+		api_key = view.settings().get('postit_api_key', "NO KEY")
 
-		thread = PostItWorker(file_name, contents)
+		thread = PostItWorker(file_name, contents, api_key)
 		thread.start()
 
 		self._handle_thread(thread)
@@ -76,21 +77,22 @@ class PostItWorker(threading.Thread):
 	Worker thread to prevent blocking while uploading contents to the internal
 	server
 	"""
-	def __init__(self, file_name, contents, timeout=REQUEST_TIMEOUT):
+	def __init__(self, file_name, contents, api_key, timeout=REQUEST_TIMEOUT):
 		self.file_name = file_name
 		self.contents = contents
+		self.api_key = api_key
 		self.result = None
 		self.timeout = timeout
 
 		super(PostItWorker, self).__init__()
 
 	def run(self):
-		data = {'filename': self.file_name, 'contents': self.contents}
-		
+		data = {'filename': self.file_name, 'contents': self.contents, 'api_key': self.api_key}
+
 		try:
 			req = requests.post(ENDPOINT_URL, data=data, timeout=self.timeout)
-			self.result = json.loads(req.text)
 			req.raise_for_status() # Trigger exceptions for 400/500 status codes
+			self.result = json.loads(req.text)
 			return
 
 		except HTTPError as e:
