@@ -30,8 +30,13 @@ class PostItCommand(sublime_plugin.WindowCommand):
 			sublime.status_message(ERROR_STATUS_MESSAGE)
 			return
 
+		api_key = view.settings().get('postit_api_key', None)
+		if api_key is None or len(api_key) == 0:
+			sublime.error_message("Please set 'postit_api_key' in Sublime preferences")
+			sublime.status_message(ERROR_STATUS_MESSAGE)
+			return
+
 		contents = self.grab_view_contents(view)
-		api_key = view.settings().get('postit_api_key', "NO KEY")
 
 		thread = PostItWorker(file_name, contents, api_key)
 		thread.start()
